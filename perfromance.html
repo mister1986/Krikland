@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kirkland Dental Excellence — Meta Pipeline Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--ink:#12343B;--paper:#FAFBF9;--card:#fff;--mint:#2E8B6E;--mint-soft:#E4F2EC;--amber:#C77B1E;--amber-soft:#F7EBD9;--red:#B33A3A;--red-soft:#F6E4E4;--slate:#5C6B68;--line:#E3E8E5;--blue:#2A6F97}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--paper);color:var(--ink);font-family:Inter,sans-serif;line-height:1.65}
+.wrap{max-width:1200px;margin:auto;padding:0 28px 80px}header{border-bottom:3px solid var(--ink);padding:48px 0 28px;margin-bottom:36px}
+.eyebrow{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mint);margin-bottom:10px}
+h1{font-family:Sora;font-size:clamp(26px,4vw,40px);line-height:1.15}.meta-row{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;font:12.5px 'IBM Plex Mono';color:var(--slate)}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.chip{font-size:12.5px;font-weight:600;padding:5px 13px;border-radius:100px}.good{background:var(--mint-soft);color:#1D6B52}.warn{background:var(--amber-soft);color:#96590E}.bad{background:var(--red-soft);color:#8F2626}
+h2{font:600 20px Sora;margin:52px 0 6px;display:flex;gap:12px}h2 .idx{font:12px 'IBM Plex Mono';color:var(--mint)}.sub{color:var(--slate);font-size:13.5px;margin-bottom:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}.kpi,.panel{background:var(--card);border:1px solid var(--line);border-radius:10px}.kpi{padding:18px 20px}.panel{padding:24px}
+.kpi .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);font-weight:600}.kpi .val{font:700 30px Sora}.kpi .note{font-size:12.5px;color:var(--slate)}
+.chart-box{position:relative;height:360px}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;font-size:11px;text-transform:uppercase;color:var(--slate);padding:10px 9px;border-bottom:2px solid var(--ink);white-space:nowrap}th.num,td.num{text-align:right;font:12px 'IBM Plex Mono'}td{padding:10px 9px;border-bottom:1px solid var(--line)}tr.total td{font-weight:600;background:var(--mint-soft);border-top:2px solid var(--ink)}
+.trend-btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:999px;font:600 12px Inter;cursor:pointer}.trend-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+
+.cr-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.cr-kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.cr-kpi span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);font-weight:600}
+.cr-kpi strong{display:block;font:700 24px Sora;margin-top:3px}
+.cr-kpi small{display:block;font-size:11.5px;color:var(--slate)}
+.cr-total{background:var(--mint-soft);border-color:#c9e4d8}
+.cr-controls{display:flex;gap:8px;margin-bottom:16px}
+.cr-view-btn{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:999px;font:600 12px Inter;cursor:pointer}
+.cr-view-btn.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cr-table-wrap{overflow-x:auto;margin-top:18px}
+.cr-pct{color:var(--slate);font-size:11px}
+.cr-note{font-size:12px;color:var(--slate);margin-top:10px}
+
+.value-stage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.value-stage-card{appearance:none;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;cursor:pointer;color:var(--ink);transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+.value-stage-card:hover{transform:translateY(-2px);border-color:var(--mint);box-shadow:0 8px 22px rgba(18,52,59,.08)}
+.value-stage-card[aria-expanded="true"]{border-color:var(--mint);box-shadow:0 0 0 2px var(--mint-soft)}
+.value-stage-name{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--slate);font-weight:600}
+.value-stage-card strong{display:block;font:700 27px Sora;margin:5px 0 1px}
+.value-stage-card small{display:block;color:var(--slate);font-size:12px}
+.value-stage-action{display:block;color:var(--mint);font-size:12px;font-weight:600;margin-top:12px}
+.value-stage-details{margin-top:18px}
+.value-stage-panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.value-stage-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
+.value-stage-panel-head h3{font:600 17px Sora}
+.value-stage-panel-head p{font-size:12.5px;color:var(--slate);margin-top:3px}
+.value-stage-close{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;cursor:pointer;color:var(--ink);font-weight:600}
+.value-table-wrap{overflow-x:auto}
+.empty-value-row{text-align:center;color:var(--slate);padding:24px}
+
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:18px;font:11.5px 'IBM Plex Mono';color:var(--slate)}
+</style></head><body><div class="wrap">
+<header><div class="eyebrow">Meta-only pipeline performance report</div><h1>Kirkland Dental Excellence<br>Meta ads &amp; CRM pipeline</h1>
+<div class="meta-row"><span>Period: Apr 1 – Jul 12, 2026</span><span>CRM Meta leads: 26</span><span>Meta Ads + Meta-attributed CRM records</span></div>
+<div class="chips"><span class="chip good">4 scheduled</span><span class="chip warn">18 in communication</span><span class="chip bad">0 started treatment</span></div></header>
+
+<h2><span class="idx">01</span>Meta headline numbers</h2>
+<div class="kpis">
+<div class="kpi"><div class="lbl">Meta spend</div><div class="val">$2,210.55</div><div class="note">May through July 12; April spend unavailable</div></div>
+<div class="kpi"><div class="lbl">Meta CRM leads</div><div class="val">26</div><div class="note">$85.02 per CRM lead</div></div>
+<div class="kpi"><div class="lbl">In communication</div><div class="val">18</div><div class="note">Current CRM stage</div></div>
+<div class="kpi"><div class="lbl">Scheduled</div><div class="val">4</div><div class="note">$552.64 per scheduled appointment</div></div>
+<div class="kpi"><div class="lbl">Showed up</div><div class="val">0</div><div class="note">No Showed_Up records in this export</div></div>
+<div class="kpi"><div class="lbl">Showed up cleaning</div><div class="val">0</div><div class="note">Current CRM stage</div></div>
+<div class="kpi"><div class="lbl">Started treatment</div><div class="val">0</div><div class="note">N/A per started treatment</div></div>
+</div>
+
+<h2><span class="idx">02</span>Monthly Meta pipeline performance</h2>
+<p class="sub">Closed has been replaced with Started Treatment. The table also includes In Communication, Showed Up, and Showed Up Cleaning.</p>
+<div class="panel" style="padding:8px;overflow-x:auto"><table>
+<tr><th>Month</th><th class="num">Leads</th><th class="num">In Communication</th><th class="num">Scheduled</th><th class="num">Showed Up</th><th class="num">Showed Up Cleaning</th><th class="num">Started Treatment</th><th class="num">Spend</th><th class="num">CPL</th><th class="num">Cost / Scheduled</th><th class="num">Cost / Started Tx</th></tr>
+<tr><td>April</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>N/A</td><td class='num'>N/A</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>May</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$137.98</td><td class='num'>N/A</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>June</td><td class='num'>17</td><td class='num'>11</td><td class='num'>3</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$1,482.58</td><td class='num'>$87.21</td><td class='num'>$494.19</td><td class='num'>N/A</td></tr><tr><td>July</td><td class='num'>9</td><td class='num'>7</td><td class='num'>1</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$589.99</td><td class='num'>$65.55</td><td class='num'>$589.99</td><td class='num'>N/A</td></tr>
+<tr class="total"><td>Total</td><td class="num">26</td><td class="num">18</td><td class="num">4</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">$2,210.55</td><td class="num">$85.02</td><td class="num">$552.64</td><td class="num">N/A</td></tr>
+</table></div>
+
+<h2><span class="idx">03</span>Pipeline stage trend</h2>
+<p class="sub">Choose monthly, weekly, or daily. The chart shows In Communication, Scheduled, Showed Up, Showed Up Cleaning, and Started Treatment.</p>
+<div class="panel"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+<button class="trend-btn active" data-range="monthly">Monthly</button><button class="trend-btn" data-range="weekly">Weekly</button><button class="trend-btn" data-range="daily">Daily</button></div>
+<div class="chart-box"><canvas id="trend"></canvas></div></div>
+
+<h2><span class="idx">04</span>Meta campaign CRM UTM data</h2>
+<div class="panel" style="padding:8px;overflow-x:auto"><table>
+<tr><th>Campaign</th><th class="num">Leads</th><th class="num">In Communication</th><th class="num">Scheduled</th><th class="num">Showed Up</th><th class="num">Showed Up Cleaning</th><th class="num">Started Treatment</th><th class="num">Spend</th><th class="num">Cost / Scheduled</th><th class="num">Cost / Started Tx</th></tr>
+<tr><td>TOF_Engagement_Thruplays_May25_2026_Implants_Kirkland_Medina_Bellevue</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$806.02</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>BOF_LeadGen_May25_2026_Kirkland_Medina_Bellevue</td><td class='num'>8</td><td class='num'>5</td><td class='num'>2</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$681.11</td><td class='num'>$340.56</td><td class='num'>N/A</td></tr><tr><td>MOF_LeadGen_May25_2026_Kirkland_Medina_Bellevue</td><td class='num'>13</td><td class='num'>10</td><td class='num'>1</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$609.25</td><td class='num'>$609.25</td><td class='num'>N/A</td></tr><tr><td>BOF_LeadGen_July_2026_Kirkland_Medina_Bellevue</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$53.41</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>MOF_LeadGen_July_2026_Kirkland_Medina_Bellevue</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$52.57</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>Lead | BOF |  Zip 98033 | 5/28/26</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>$8.19</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>2. ($16.66/day) Video Testimonials - | MOF | - Leads -  Kirkland/Medina/Bellevue</td><td class='num'>2</td><td class='num'>1</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>N/A</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>3. ($16.66/Day)  Leads - Implants | BOF |  Kirkland/Medina/Bellevue -  5/28/26</td><td class='num'>2</td><td class='num'>1</td><td class='num'>1</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>N/A</td><td class='num'>N/A</td><td class='num'>N/A</td></tr><tr><td>nan</td><td class='num'>1</td><td class='num'>1</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>N/A</td><td class='num'>N/A</td><td class='num'>N/A</td></tr>
+</table></div>
+
+
+
+<h2><span class="idx">05</span>Tag-based Meta conversion rates</h2>
+<p class="sub">This section identifies Meta patients from contact tags, then matches them to CRM opportunities by phone, email, or name. Conversion rate equals the number currently in each stage divided by total Meta leads in that period.</p>
+
+<div class="cr-summary-grid">
+  <div class="cr-kpi cr-total">
+    <span>Total Meta leads</span>
+    <strong>26</strong>
+    <small>100% cohort</small>
+  </div>
+  
+    <div class="cr-kpi">
+      <span>In Communication</span>
+      <strong>18</strong>
+      <small>69.2% of Meta leads</small>
+    </div>
+    
+    <div class="cr-kpi">
+      <span>Scheduled</span>
+      <strong>4</strong>
+      <small>15.4% of Meta leads</small>
+    </div>
+    
+    <div class="cr-kpi">
+      <span>Showed Up</span>
+      <strong>0</strong>
+      <small>0.0% of Meta leads</small>
+    </div>
+    
+    <div class="cr-kpi">
+      <span>Showed Up Cleaning</span>
+      <strong>0</strong>
+      <small>0.0% of Meta leads</small>
+    </div>
+    
+    <div class="cr-kpi">
+      <span>Started Treatment</span>
+      <strong>0</strong>
+      <small>0.0% of Meta leads</small>
+    </div>
+    
+    <div class="cr-kpi">
+      <span>Not Interested</span>
+      <strong>3</strong>
+      <small>11.5% of Meta leads</small>
+    </div>
+    
+    <div class="cr-kpi">
+      <span>Day 1 Call</span>
+      <strong>1</strong>
+      <small>3.8% of Meta leads</small>
+    </div>
+    
+</div>
+
+<div class="panel" style="margin-top:18px">
+  <div class="cr-controls">
+    <button type="button" class="cr-view-btn active" data-cr-view="monthly">Monthly</button>
+    <button type="button" class="cr-view-btn" data-cr-view="weekly">Weekly</button>
+  </div>
+  <div class="chart-box" style="height:380px"><canvas id="tagCrChart"></canvas></div>
+  <div class="cr-table-wrap">
+    <table id="tagCrTable">
+      <thead>
+        <tr>
+          <th>Period</th>
+          <th class="num">Total Meta Leads</th>
+          <th class="num">In Communication</th><th class="num">Scheduled</th><th class="num">Showed Up</th><th class="num">Showed Up Cleaning</th><th class="num">Started Treatment</th><th class="num">Not Interested</th><th class="num">Day 1 Call</th>
+        </tr>
+      </thead>
+      <tbody id="tagCrTableBody">
+        <tr><td>Apr 2026</td><td class='num'>0</td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td></tr><tr><td>May 2026</td><td class='num'>0</td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td></tr><tr><td>Jun 2026</td><td class='num'>17</td><td class='num'>11 <span class='cr-pct'>(64.7%)</span></td><td class='num'>3 <span class='cr-pct'>(17.6%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>3 <span class='cr-pct'>(17.6%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td></tr><tr><td>Jul 2026</td><td class='num'>9</td><td class='num'>7 <span class='cr-pct'>(77.8%)</span></td><td class='num'>1 <span class='cr-pct'>(11.1%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>0 <span class='cr-pct'>(0.0%)</span></td><td class='num'>1 <span class='cr-pct'>(11.1%)</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cr-note">Each table cell shows the stage count and its conversion rate from total Meta leads in that period.</p>
+</div>
+
+<h2><span class="idx">06</span>Opportunity value by pipeline stage</h2>
+<p class="sub">Opportunity Value is treated as revenue potential. Click a stage to view only the Meta-attributed patients with a value greater than $0.</p>
+<div class="value-stage-grid">
+  
+    <button class="value-stage-card" type="button" data-stage-panel="stage-panel-0" aria-expanded="false">
+      <span class="value-stage-name">In Communication</span>
+      <strong>$0.00</strong>
+      <small>0 patients with value</small>
+      <span class="value-stage-action">View patient list</span>
+    </button>
+    
+    <button class="value-stage-card" type="button" data-stage-panel="stage-panel-1" aria-expanded="false">
+      <span class="value-stage-name">Scheduled</span>
+      <strong>$188.00</strong>
+      <small>1 patient with value</small>
+      <span class="value-stage-action">View patient list</span>
+    </button>
+    
+    <button class="value-stage-card" type="button" data-stage-panel="stage-panel-2" aria-expanded="false">
+      <span class="value-stage-name">Showed Up</span>
+      <strong>$0.00</strong>
+      <small>0 patients with value</small>
+      <span class="value-stage-action">View patient list</span>
+    </button>
+    
+    <button class="value-stage-card" type="button" data-stage-panel="stage-panel-3" aria-expanded="false">
+      <span class="value-stage-name">Showed Up Cleaning</span>
+      <strong>$0.00</strong>
+      <small>0 patients with value</small>
+      <span class="value-stage-action">View patient list</span>
+    </button>
+    
+    <button class="value-stage-card" type="button" data-stage-panel="stage-panel-4" aria-expanded="false">
+      <span class="value-stage-name">Started Treatment</span>
+      <strong>$0.00</strong>
+      <small>0 patients with value</small>
+      <span class="value-stage-action">View patient list</span>
+    </button>
+    
+</div>
+<div class="value-stage-details">
+  
+    <div class="value-stage-panel" id="stage-panel-0" hidden>
+      <div class="value-stage-panel-head">
+        <div>
+          <h3>In Communication</h3>
+          <p>$0.00 total opportunity value from 0 patients.</p>
+        </div>
+        <button type="button" class="value-stage-close" aria-label="Close patient list">Close</button>
+      </div>
+      <div class="value-table-wrap">
+        <table>
+          <tr><th>Patient</th><th>CRM UTM campaign</th><th>Created</th><th class="num">Opportunity value</th></tr>
+          
+        <tr><td colspan="4" class="empty-value-row">No patients with a positive opportunity value in this stage.</td></tr>
+        
+        </table>
+      </div>
+    </div>
+    
+    <div class="value-stage-panel" id="stage-panel-1" hidden>
+      <div class="value-stage-panel-head">
+        <div>
+          <h3>Scheduled</h3>
+          <p>$188.00 total opportunity value from 1 patient.</p>
+        </div>
+        <button type="button" class="value-stage-close" aria-label="Close patient list">Close</button>
+      </div>
+      <div class="value-table-wrap">
+        <table>
+          <tr><th>Patient</th><th>CRM UTM campaign</th><th>Created</th><th class="num">Opportunity value</th></tr>
+          
+            <tr>
+              <td>Ulises Jimenez</td>
+              <td>BOF_LeadGen_May25_2026_Kirkland_Medina_Bellevue</td>
+              <td>Jun 22, 2026</td>
+              <td class="num">$188.00</td>
+            </tr>
+            
+        </table>
+      </div>
+    </div>
+    
+    <div class="value-stage-panel" id="stage-panel-2" hidden>
+      <div class="value-stage-panel-head">
+        <div>
+          <h3>Showed Up</h3>
+          <p>$0.00 total opportunity value from 0 patients.</p>
+        </div>
+        <button type="button" class="value-stage-close" aria-label="Close patient list">Close</button>
+      </div>
+      <div class="value-table-wrap">
+        <table>
+          <tr><th>Patient</th><th>CRM UTM campaign</th><th>Created</th><th class="num">Opportunity value</th></tr>
+          
+        <tr><td colspan="4" class="empty-value-row">No patients with a positive opportunity value in this stage.</td></tr>
+        
+        </table>
+      </div>
+    </div>
+    
+    <div class="value-stage-panel" id="stage-panel-3" hidden>
+      <div class="value-stage-panel-head">
+        <div>
+          <h3>Showed Up Cleaning</h3>
+          <p>$0.00 total opportunity value from 0 patients.</p>
+        </div>
+        <button type="button" class="value-stage-close" aria-label="Close patient list">Close</button>
+      </div>
+      <div class="value-table-wrap">
+        <table>
+          <tr><th>Patient</th><th>CRM UTM campaign</th><th>Created</th><th class="num">Opportunity value</th></tr>
+          
+        <tr><td colspan="4" class="empty-value-row">No patients with a positive opportunity value in this stage.</td></tr>
+        
+        </table>
+      </div>
+    </div>
+    
+    <div class="value-stage-panel" id="stage-panel-4" hidden>
+      <div class="value-stage-panel-head">
+        <div>
+          <h3>Started Treatment</h3>
+          <p>$0.00 total opportunity value from 0 patients.</p>
+        </div>
+        <button type="button" class="value-stage-close" aria-label="Close patient list">Close</button>
+      </div>
+      <div class="value-table-wrap">
+        <table>
+          <tr><th>Patient</th><th>CRM UTM campaign</th><th>Created</th><th class="num">Opportunity value</th></tr>
+          
+        <tr><td colspan="4" class="empty-value-row">No patients with a positive opportunity value in this stage.</td></tr>
+        
+        </table>
+      </div>
+    </div>
+    
+</div>
+
+<footer>Prepared from Krikland crm.csv and Facebook Monthly.csv · Meta-only pipeline view · Kirkland Dental Excellence</footer>
+</div>
+<script>
+Chart.defaults.font.family='Inter, sans-serif';Chart.defaults.color='#5C6B68';
+const trendData={
+monthly:{labels:["Apr", "May", "Jun", "Jul"],inCommunication:[0, 0, 11, 7],scheduled:[0, 0, 3, 1],showedUp:[0, 0, 0, 0],showedUpCleaning:[0, 0, 0, 0],startedTreatment:[0, 0, 0, 0]},
+weekly:{labels:["Apr 6", "Apr 13", "Apr 20", "Apr 27", "May 4", "May 11", "May 18", "May 25", "Jun 1", "Jun 8", "Jun 15", "Jun 22", "Jun 29", "Jul 6"],inCommunication:[0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 3, 3, 7, 0],scheduled:[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1],showedUp:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],showedUpCleaning:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],startedTreatment:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+daily:{labels:["Apr 1", "Apr 2", "Apr 3", "Apr 4", "Apr 5", "Apr 6", "Apr 7", "Apr 8", "Apr 9", "Apr 10", "Apr 11", "Apr 12", "Apr 13", "Apr 14", "Apr 15", "Apr 16", "Apr 17", "Apr 18", "Apr 19", "Apr 20", "Apr 21", "Apr 22", "Apr 23", "Apr 24", "Apr 25", "Apr 26", "Apr 27", "Apr 28", "Apr 29", "Apr 30", "May 1", "May 2", "May 3", "May 4", "May 5", "May 6", "May 7", "May 8", "May 9", "May 10", "May 11", "May 12", "May 13", "May 14", "May 15", "May 16", "May 17", "May 18", "May 19", "May 20", "May 21", "May 22", "May 23", "May 24", "May 25", "May 26", "May 27", "May 28", "May 29", "May 30", "May 31", "Jun 1", "Jun 2", "Jun 3", "Jun 4", "Jun 5", "Jun 6", "Jun 7", "Jun 8", "Jun 9", "Jun 10", "Jun 11", "Jun 12", "Jun 13", "Jun 14", "Jun 15", "Jun 16", "Jun 17", "Jun 18", "Jun 19", "Jun 20", "Jun 21", "Jun 22", "Jun 23", "Jun 24", "Jun 25", "Jun 26", "Jun 27", "Jun 28", "Jun 29", "Jun 30", "Jul 1", "Jul 2", "Jul 3", "Jul 4", "Jul 5", "Jul 6", "Jul 7", "Jul 8", "Jul 9", "Jul 10", "Jul 11", "Jul 12"],inCommunication:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 2, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0],scheduled:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],showedUp:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],showedUpCleaning:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],startedTreatment:[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]}
+};
+const trend=new Chart(document.getElementById('trend'),{type:'line',data:{labels:trendData.monthly.labels,datasets:[
+{label:'In Communication',data:trendData.monthly.inCommunication,borderColor:'#2A6F97',backgroundColor:'#2A6F97',borderWidth:2.5,pointRadius:4,tension:.25},
+{label:'Scheduled',data:trendData.monthly.scheduled,borderColor:'#2E8B6E',backgroundColor:'#2E8B6E',borderWidth:2.5,pointRadius:4,tension:.25},
+{label:'Showed Up',data:trendData.monthly.showedUp,borderColor:'#C77B1E',backgroundColor:'#C77B1E',borderWidth:2.5,pointRadius:4,tension:.25},
+{label:'Showed Up Cleaning',data:trendData.monthly.showedUpCleaning,borderColor:'#7A5AF8',backgroundColor:'#7A5AF8',borderWidth:2.5,pointRadius:4,tension:.25},
+{label:'Started Treatment',data:trendData.monthly.startedTreatment,borderColor:'#B33A3A',backgroundColor:'#B33A3A',borderWidth:2.5,pointRadius:4,tension:.25}
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:16}},y:{beginAtZero:true,ticks:{precision:0}}}}});
+document.querySelectorAll('.trend-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.trend-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const r=btn.dataset.range;trend.data.labels=trendData[r].labels;trend.data.datasets[0].data=trendData[r].inCommunication;trend.data.datasets[1].data=trendData[r].scheduled;trend.data.datasets[2].data=trendData[r].showedUp;trend.data.datasets[3].data=trendData[r].showedUpCleaning;trend.data.datasets[4].data=trendData[r].startedTreatment;trend.options.scales.x.ticks.maxTicksLimit=r==='daily'?14:16;trend.update();}));
+
+document.querySelectorAll('.value-stage-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    const targetId=card.dataset.stagePanel;
+    const target=document.getElementById(targetId);
+    const isOpen=!target.hidden;
+    document.querySelectorAll('.value-stage-panel').forEach(panel=>panel.hidden=true);
+    document.querySelectorAll('.value-stage-card').forEach(c=>c.setAttribute('aria-expanded','false'));
+    if(!isOpen){
+      target.hidden=false;
+      card.setAttribute('aria-expanded','true');
+      target.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  });
+});
+document.querySelectorAll('.value-stage-close').forEach(button=>{
+  button.addEventListener('click',()=>{
+    button.closest('.value-stage-panel').hidden=true;
+    document.querySelectorAll('.value-stage-card').forEach(c=>c.setAttribute('aria-expanded','false'));
+  });
+});
+
+
+const tagCrData = {"monthly": [{"label": "Apr 2026", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "May 2026", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Jun 2026", "total": 17, "In Communication": {"count": 11, "cr": 64.7}, "Scheduled": {"count": 3, "cr": 17.6}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 3, "cr": 17.6}, "Day 1 Call": {"count": 0, "cr": 0.0}}, {"label": "Jul 2026", "total": 9, "In Communication": {"count": 7, "cr": 77.8}, "Scheduled": {"count": 1, "cr": 11.1}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 0, "cr": 0.0}, "Day 1 Call": {"count": 1, "cr": 11.1}}], "weekly": [{"label": "Mar 30\u2013Apr 5", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Apr 6\u2013Apr 12", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Apr 13\u2013Apr 19", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Apr 20\u2013Apr 26", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Apr 27\u2013May 3", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "May 4\u2013May 10", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "May 11\u2013May 17", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "May 18\u2013May 24", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "May 25\u2013May 31", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Jun 1\u2013Jun 7", "total": 0, "In Communication": {"count": 0, "cr": 0}, "Scheduled": {"count": 0, "cr": 0}, "Showed Up": {"count": 0, "cr": 0}, "Showed Up Cleaning": {"count": 0, "cr": 0}, "Started Treatment": {"count": 0, "cr": 0}, "Not Interested": {"count": 0, "cr": 0}, "Day 1 Call": {"count": 0, "cr": 0}}, {"label": "Jun 8\u2013Jun 14", "total": 7, "In Communication": {"count": 5, "cr": 71.4}, "Scheduled": {"count": 1, "cr": 14.3}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 1, "cr": 14.3}, "Day 1 Call": {"count": 0, "cr": 0.0}}, {"label": "Jun 15\u2013Jun 21", "total": 5, "In Communication": {"count": 3, "cr": 60.0}, "Scheduled": {"count": 1, "cr": 20.0}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 1, "cr": 20.0}, "Day 1 Call": {"count": 0, "cr": 0.0}}, {"label": "Jun 22\u2013Jun 28", "total": 4, "In Communication": {"count": 3, "cr": 75.0}, "Scheduled": {"count": 1, "cr": 25.0}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 0, "cr": 0.0}, "Day 1 Call": {"count": 0, "cr": 0.0}}, {"label": "Jun 29\u2013Jul 5", "total": 8, "In Communication": {"count": 7, "cr": 87.5}, "Scheduled": {"count": 0, "cr": 0.0}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 1, "cr": 12.5}, "Day 1 Call": {"count": 0, "cr": 0.0}}, {"label": "Jul 6\u2013Jul 12", "total": 2, "In Communication": {"count": 0, "cr": 0.0}, "Scheduled": {"count": 1, "cr": 50.0}, "Showed Up": {"count": 0, "cr": 0.0}, "Showed Up Cleaning": {"count": 0, "cr": 0.0}, "Started Treatment": {"count": 0, "cr": 0.0}, "Not Interested": {"count": 0, "cr": 0.0}, "Day 1 Call": {"count": 1, "cr": 50.0}}]};
+const tagCrStages = ["In Communication", "Scheduled", "Showed Up", "Showed Up Cleaning", "Started Treatment", "Not Interested", "Day 1 Call"];
+
+function renderTagCrTable(view){
+  const body=document.getElementById('tagCrTableBody');
+  body.innerHTML=tagCrData[view].map(row=>{
+    const stageCells=tagCrStages.map(stage=>{
+      const item=row[stage];
+      return `<td class="num">${item.count} <span class="cr-pct">(${item.cr.toFixed(1)}%)</span></td>`;
+    }).join('');
+    return `<tr><td>${row.label}</td><td class="num">${row.total}</td>${stageCells}</tr>`;
+  }).join('');
+}
+
+const tagCrChart = new Chart(document.getElementById('tagCrChart'), {
+  type:'line',
+  data:{
+    labels:tagCrData.monthly.map(r=>r.label),
+    datasets:tagCrStages.slice(0,5).map(stage=>({
+      label:stage,
+      data:tagCrData.monthly.map(r=>r[stage].cr),
+      borderWidth:2.3,
+      pointRadius:4,
+      tension:.25
+    }))
+  },
+  options:{
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{
+      legend:{position:'bottom'},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw.toFixed(1)}%`}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{maxTicksLimit:14}},
+      y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}
+    }
+  }
+});
+
+document.querySelectorAll('.cr-view-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.cr-view-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const view=btn.dataset.crView;
+    renderTagCrTable(view);
+    tagCrChart.data.labels=tagCrData[view].map(r=>r.label);
+    tagCrChart.data.datasets.forEach(ds=>{
+      ds.data=tagCrData[view].map(r=>r[ds.label].cr);
+    });
+    tagCrChart.options.scales.x.ticks.maxTicksLimit=view==='weekly'?12:14;
+    tagCrChart.update();
+  });
+});
+
+</script></body></html>
